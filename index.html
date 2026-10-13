@@ -164,6 +164,16 @@ input{width:100%;border-radius:10px;background:var(--bg2);color:var(--fg);border
 .aceito{display:flex;align-items:center;gap:8px;font-weight:700;cursor:pointer}.aceito input{width:22px;height:22px;flex:none}
 .convite{display:grid;gap:8px}.convite textarea{width:100%;border-radius:10px;background:var(--bg2);color:var(--fg);border:1px solid var(--line);padding:10px;font:inherit;font-size:14px;resize:vertical}
 .zap{display:inline-grid;place-items:center;text-decoration:none;border-color:#1aa85a;color:#c8ffd9}
+/* boas-vindas */
+.bv-fundo{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:#050814cc;backdrop-filter:blur(3px)}
+.bv{width:min(460px,100%);max-height:calc(100vh - 32px);overflow-y:auto;display:grid;gap:12px;padding:18px 16px;border-radius:18px;background:linear-gradient(170deg,#1d1450,#111a30 55%);border:2px solid var(--neon);box-shadow:0 0 30px #ff4fd855}
+.bv h2{margin:0;font-family:var(--f-disp);font-size:24px;text-transform:uppercase;letter-spacing:.04em;color:var(--aura);text-align:center;text-shadow:0 0 14px #ffb42366;text-wrap:balance}
+.bv-it{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}
+.bv-it>span{font-size:24px;line-height:1.2;text-align:center}
+.bv-it p{margin:0;font-size:15px}.bv-it b{font-family:var(--f-disp);color:var(--fg)}
+.bv-reg{margin:0;font-size:14px;color:var(--muted);text-align:center}
+.bv .bt{width:100%;min-height:50px;font-size:18px}
+.bv-abrir{justify-self:center;background:none;border:0;color:var(--sea);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:4px}
 .como summary{cursor:pointer;font-family:var(--f-disp)}.como ol{display:grid;gap:6px;padding-left:20px}
 @media (max-width:400px){.gbts{grid-template-columns:1fr}.svn{width:70px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -1838,6 +1848,32 @@ const TA = [["você", "voce", "vocé", "vôce"], ["família", "familia", "famila
   }
 
   window.addEventListener("beforeunload", () => { if (ENG.sala) try { ENG.sala.leave(); } catch (e) {} });
+
+  // ---------- boas-vindas: aparece na primeira visita; o botão "Como funciona?" reabre ----------
+  function boasVindas() {
+    if (document.getElementById("bvFundo")) return;
+    const f = document.createElement("div");
+    f.className = "bv-fundo"; f.id = "bvFundo";
+    f.innerHTML = `<section class="bv" role="dialog" aria-modal="true" aria-labelledby="bvTit">
+      <h2 id="bvTit">Bem-vindo ao Fliperama CIABA! 🎮</h2>
+      <div class="bv-it"><span>🕹️</span><p><b>Jogue:</b> Quiz, Tiro Certo, Forca, Stop, Duelo e Tabuada. Dá pra jogar sozinho ou em salas ao vivo com a galera.</p></div>
+      <div class="bv-it"><span>⚡</span><p><b>Junte aura:</b> toda partida rende aura. Bater recorde e vencer em sala dá bônus.</p></div>
+      <div class="bv-it"><span>🎨</span><p><b>Monte seu personagem:</b> na aba Personagem, troque sua aura por cabelo, roupas e itens raros.</p></div>
+      <div class="bv-it"><span>🏆</span><p><b>Suba no ranking:</b> os melhores aparecem no pódio. Em breve, quem estiver no topo vai concorrer a <b>prêmios</b>.</p></div>
+      <p class="bv-reg">🤝 Respeito no chat. Quem pegar pesado é banido.</p>
+      <button class="bt" id="bvOk">Bora jogar!</button></section>`;
+    document.body.appendChild(f);
+    const fechar = () => { LS("fl-boasvindas", "1"); f.remove(); };
+    f.querySelector("#bvOk").addEventListener("click", fechar);
+    f.addEventListener("click", (e) => { if (e.target === f) fechar(); });
+    f.querySelector("#bvOk").focus();
+  }
+  (function () {
+    const cab = document.querySelector(".letreiro"); if (!cab || document.getElementById("bvAbrir")) return;
+    const b = document.createElement("button"); b.className = "bv-abrir"; b.id = "bvAbrir"; b.textContent = "Como funciona?";
+    b.addEventListener("click", boasVindas); cab.appendChild(b);
+  })();
+  if (!LS("fl-boasvindas")) boasVindas();
   desenhaJogador(); render(); conectar();
   window.FLON = { S, ENG, get P() { return P; }, JG, registrar, irPara, perguntaTiro, rngDe }; // para testes
 })();
