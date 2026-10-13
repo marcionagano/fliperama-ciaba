@@ -274,7 +274,17 @@ input{width:100%;border-radius:10px;background:var(--bg2);color:var(--fg);border
   } };
   // login, saída e banimento (usados pela página)
   window.FB = {
-    entrar: async () => { const p = new firebase.auth.GoogleAuthProvider(); try { await auth.signInWithPopup(p); } catch (e) { if (/popup/i.test(e.code || "")) return auth.signInWithRedirect(p); throw e; } location.reload(); },
+    // Só janelinha (popup): o login por redirecionamento quebra no Safari do iPhone (site e login em domínios diferentes).
+    entrar: async () => {
+      if (/FBAN|FBAV|Instagram|WhatsApp|Line\/|; wv\)|GSA\//i.test(navigator.userAgent || "")) throw { msg: "O Google não deixa entrar por este navegador interno. Toque nos ••• e escolha “Abrir no Safari” (ou no Chrome)." };
+      const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: "select_account" });
+      try { await auth.signInWithPopup(p); }
+      catch (e) { const c = (e && e.code) || "";
+        if (/popup-closed|cancelled-popup/.test(c)) throw { msg: "A janela do Google foi fechada antes de terminar. Toque em Entrar de novo." };
+        if (/popup-blocked/.test(c)) throw { msg: "O navegador bloqueou a janela do Google. Toque em Entrar de novo (ou libere pop-ups para este site)." };
+        if (/unauthorized-domain|operation-not-allowed|admin-restricted|disallowed/.test(c) || /access_denied|org_internal/i.test(e && e.message || "")) throw { msg: "Essa conta não pode entrar ainda. Avise o Márcio." };
+        throw { msg: "Não deu para entrar. Tente de novo." }; }
+      location.reload(); },
     sair: async () => { await auth.signOut(); location.reload(); },
     banir: async (uid, sim) => rtdb.ref("ban/" + uid).set(sim ? true : null),
     banidos: (cb) => rtdb.ref("ban").on("value", (s) => cb(Object.keys(s.val() || {}))),
@@ -1240,7 +1250,7 @@ const TA = [["você", "voce", "vocé", "vôce"], ["família", "familia", "famila
     st.className = "status " + (S.modo === "online" ? "on" : "");
     if (FBV) { st.textContent = S.modo === "online" ? `Conectado como ${S.nome || "você"}` : S.modo === "carregando" ? "Conectando…" : "Entre com o Google para o ranking, o chat e as salas";
       const c = document.getElementById("conta"); if (c) { c.innerHTML = S.modo === "online" ? `<button class="fl-link" id="btSair">Sair da conta</button>` : S.modo === "carregando" ? "" : `<button class="bt google" id="btEntrar">Entrar com Google</button>`;
-        const e = document.getElementById("btEntrar"); if (e) e.onclick = () => window.FB && FB.entrar().catch(() => { st.textContent = "Não deu para entrar. Tente de novo."; });
+        const e = document.getElementById("btEntrar"); if (e) e.onclick = () => window.FB && FB.entrar().catch((x) => { st.textContent = (x && x.msg) || "Não deu para entrar. Tente de novo."; st.style.color = "#ffd0d8"; });
         const x = document.getElementById("btSair"); if (x) x.onclick = () => window.FB && FB.sair(); } }
   }
   function desenhaAbas() {
