@@ -1,0 +1,43 @@
+{
+  "rules": {
+    "perfis": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "(auth != null && auth.uid === $uid && !root.child('ban').child(auth.uid).exists()) || (auth != null && auth.token.email_verified == true && auth.token.email.toLowerCase() == 'contato@marcionagano.com')",
+        ".validate": "newData.child('j').isString() && newData.child('j').val().length < 20000"
+      }
+    },
+    "chat": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "(auth != null && auth.uid === $uid && !root.child('ban').child(auth.uid).exists()) || (auth != null && auth.token.email_verified == true && auth.token.email.toLowerCase() == 'contato@marcionagano.com')",
+        ".validate": "newData.child('j').isString() && newData.child('j').val().length < 20000"
+      }
+    },
+    "mod": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email_verified == true && auth.token.email.toLowerCase() == 'contato@marcionagano.com'"
+    },
+    "ban": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email_verified == true && auth.token.email.toLowerCase() == 'contato@marcionagano.com'"
+    },
+    "contas": {
+      "$uid": {
+        ".read": "auth != null && auth.token.email_verified == true && auth.token.email.toLowerCase() == 'contato@marcionagano.com'",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "salas": {
+      ".read": "auth != null",
+      "$sala": {
+        ".write": "auth != null && !root.child('ban').child(auth.uid).exists()",
+        "ev": {
+          ".indexOn": [
+            "t"
+          ]
+        }
+      }
+    }
+  }
+}
